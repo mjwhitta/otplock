@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"sync"
@@ -40,6 +41,7 @@ func (otp *OTPLock) advanced(
 		return
 	}
 
+	// Get values from form
 	t, e = strconv.Atoi(r.Form.Get("expires"))
 	if e != nil {
 		hl.Fprintf(w, errPg, e.Error())
@@ -73,7 +75,7 @@ func (otp *OTPLock) advanced(
 	}
 
 	// Store metadata
-	guid = "/" + uuid.New().String()
+	guid = uuid.New().String()
 	meta = metadata{
 		Expires: time.Now().Add(expires),
 		GUID:    guid,
@@ -98,13 +100,15 @@ func (otp *OTPLock) advanced(
 	// Compile in background thread
 	wg.Add(1)
 	go func() {
+		var dir string
 		var f *os.File
 		var src string
 
 		defer wg.Done()
 
 		// Change to the correct directory
-		if e = os.Chdir("wwwotp" + srcMeta.GUID); e != nil {
+		dir = filepath.Join("wwwotp", srcMeta.GUID)
+		if e = os.Chdir(dir); e != nil {
 			return
 		}
 
@@ -120,7 +124,11 @@ func (otp *OTPLock) advanced(
 			"ENCHEX",
 			hex.EncodeToString(tmp),
 		)
-		src = strings.ReplaceAll(src, "OTPURL", srcMeta.Endpoint+guid)
+		src = strings.ReplaceAll(
+			src,
+			"OTPURL",
+			srcMeta.Endpoint+"/"+guid,
+		)
 
 		// Write source to file
 		if f, e = os.Create(srcMeta.Filename); e != nil {
@@ -183,34 +191,36 @@ func (otp *OTPLock) config(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// dynamic will handle all connections other than the configuration
-// dashboard
+// dynamic will handle all incoming connections.
 func (otp *OTPLock) dynamic(w http.ResponseWriter, r *http.Request) {
 	var data interface{}
+	var guid string = pathname.Basename(r.URL.Path)
 	var meta metadata
 	var ok bool
 
+	// Main config dashboard
+	if guid == otp.Root {
+		otp.config(w, r)
+		return
+	}
+
 	// Check if GUID exists
-	if data, ok = otp.Keys.Get(r.URL.Path); ok {
+	if data, ok = otp.Keys.Get(guid); ok {
 		meta = data.(metadata)
 
 		if len(meta.Key) != 0 {
 			// GUID exists so check if key expired
 			if time.Now().Before(meta.Expires) {
 				// Key not expired, return it
-				log.Goodf(
-					"User %s fetched key %s",
-					r.RemoteAddr,
-					r.URL.Path,
-				)
+				log.Goodf("User %s got key %s", r.RemoteAddr, guid)
 				w.Write(meta.Key)
 			} else {
 				// Key expired
-				otp.Keys.Delete(r.URL.Path)
+				otp.Keys.Delete(guid)
 				log.Warnf(
-					"User %s attempted to fetch key %s",
+					"User %s attempted to get key %s",
 					r.RemoteAddr,
-					r.URL.Path,
+					guid,
 				)
 				hl.Fprint(w, notFound)
 			}
@@ -222,6 +232,7 @@ func (otp *OTPLock) dynamic(w http.ResponseWriter, r *http.Request) {
 				hl.Fprint(w, advancedDashboard)
 			case http.MethodPost:
 				otp.advanced(w, r, meta)
+				return
 			}
 		}
 	} else {
@@ -242,6 +253,7 @@ func (otp *OTPLock) newAdv(w http.ResponseWriter, r *http.Request) {
 	var meta metadata
 	var source string
 
+	// Get values from form
 	binary = r.Form.Get("binary")
 	if binary == "" {
 		hl.Fprintf(w, errPg, "No binary name provided")
@@ -273,7 +285,7 @@ func (otp *OTPLock) newAdv(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Store metadata
-	guid = "/" + uuid.New().String()
+	guid = uuid.New().String()
 	meta = metadata{
 		Binary:   binary,
 		Compile:  compile,
@@ -284,10 +296,12 @@ func (otp *OTPLock) newAdv(w http.ResponseWriter, r *http.Request) {
 	otp.Keys.Put(guid, meta)
 
 	// Make directory
-	os.MkdirAll("wwwotp"+guid, os.ModePerm)
+	os.MkdirAll(filepath.Join("wwwotp", guid), os.ModePerm)
 
 	// Create file
-	f, e = os.Create("wwwotp" + guid + "/" + filename + ".template")
+	f, e = os.Create(
+		filepath.Join("wwwotp", guid, filename) + ".template",
+	)
 	if e != nil {
 		hl.Fprintf(w, errPg, e.Error())
 		return
@@ -298,7 +312,7 @@ func (otp *OTPLock) newAdv(w http.ResponseWriter, r *http.Request) {
 	f.WriteString(source)
 
 	// Redirect user to advanced page
-	hl.Fprintf(w, advancedResp, endpoint+guid, guid)
+	hl.Fprintf(w, advancedResp, endpoint+"/"+guid, "/"+guid)
 }
 
 // simple will process simple level requests.
@@ -313,6 +327,7 @@ func (otp *OTPLock) simple(w http.ResponseWriter, r *http.Request) {
 	var t int
 	var tmp []byte
 
+	// Get values from form
 	endpoint = r.Form.Get("endpoint")
 	if endpoint == "" {
 		hl.Fprintf(w, errPg, "No endpoint provided")
@@ -352,7 +367,7 @@ func (otp *OTPLock) simple(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Store metadata
-	guid = "/" + uuid.New().String()
+	guid = uuid.New().String()
 	meta = metadata{
 		Expires: time.Now().Add(expires),
 		Key:     key,
@@ -372,5 +387,10 @@ func (otp *OTPLock) simple(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Return URL and encrypted payload to user
-	hl.Fprintf(w, simpleResp, endpoint+guid, hex.EncodeToString(tmp))
+	hl.Fprintf(
+		w,
+		simpleResp,
+		endpoint+"/"+guid,
+		hex.EncodeToString(tmp),
+	)
 }

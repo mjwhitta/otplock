@@ -36,7 +36,7 @@ func New(port int) (otp *OTPLock, e error) {
 	otp = &OTPLock{
 		Addr:        "0.0.0.0:" + strconv.Itoa(port),
 		Keys:        safety.NewMap(),
-		Root:        "/" + uuid.New().String(),
+		Root:        uuid.New().String(),
 		serverMutex: &sync.Mutex{},
 		stopped:     make(chan bool),
 	}
@@ -76,14 +76,11 @@ func (otp *OTPLock) Run(allowUnsafe bool) error {
 		},
 	)
 
-	// Handle connections at otp.Root
-	http.HandleFunc(otp.Root, otp.config)
-
-	// Handle all other routes
+	// Handle all routes
 	http.HandleFunc("/", otp.dynamic)
 
 	log.Infof(
-		"OTPLock can be configured at http://%s%s",
+		"OTPLock can be configured at http://%s/%s",
 		otp.Addr,
 		otp.Root,
 	)
