@@ -1,5 +1,7 @@
 # One-Time-Padlock (OTPLock)
 
+<a href="https://www.buymeacoffee.com/mjwhitta">🍪 Buy me a cookie</a>
+
 [![Go Report Card](https://goreportcard.com/badge/gitlab.com/mjwhitta/otplock)](https://goreportcard.com/report/gitlab.com/mjwhitta/otplock)
 
 ## What is this?
