@@ -14,7 +14,7 @@ codes for their payloads.
 Open a terminal and run the following:
 
 ```
-$ go get -u gitlab.com/mjwhitta/otplock/cmd/optlock
+$ go get -u gitlab.com/mjwhitta/otplock/cmd/otplock
 ```
 
 ## Usage
@@ -43,7 +43,7 @@ code and will attempt to compile it for you as you submit payloads.
 To start, enter the endpoint, the source filename, the command to
 compile, and the name of the compiled binary to return to the user
 upon payload submission. After hitting submit, you will be given a URL
-to save to submitting payloads.
+to save for submitting payloads.
 
 From here it is quite similar to the Simple config, except a binary is
 returned instead of the URL for the decryption key and the encrypted
