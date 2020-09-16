@@ -14,8 +14,19 @@ codes for their payloads.
 Open a terminal and run the following:
 
 ```
-$ go get -u gitlab.com/mjwhitta/otplock/cmd/otplock
+$ go get -ldflags "-s -w" -u gitlab.com/mjwhitta/otplock/cmd/otplock
 ```
+
+Or install from source:
+
+```
+$ git clone https://gitlab.com/mjwhitta/otplock.git
+$ cd otplock
+$ git submodule update --init
+$ make install
+```
+
+**Note:** `make install` will install to `$HOME/.local/bin`.
 
 ## Usage
 
