@@ -30,7 +30,7 @@ func main() {
 
 	var e error
 	var otp *otplock.OTPLock
-	var sig = make(chan os.Signal)
+	var sig = make(chan os.Signal, 1)
 
 	validate()
 

@@ -38,7 +38,7 @@ func New(port int) (otp *OTPLock, e error) {
 		Keys:        safety.NewMap(),
 		Root:        uuid.New().String(),
 		serverMutex: &sync.Mutex{},
-		stopped:     make(chan bool),
+		stopped:     make(chan bool, 1),
 	}
 
 	return
@@ -73,6 +73,7 @@ func (otp *OTPLock) Run(allowUnsafe bool) error {
 
 			// Signal that shutdown is complete
 			otp.stopped <- true
+			close(otp.stopped)
 		},
 	)
 
@@ -115,7 +116,6 @@ func (otp *OTPLock) Stop() {
 
 		// Wait for shutdown complete
 		<-otp.stopped
-		close(otp.stopped)
 	}
 
 	otp.serverMutex.Unlock()
