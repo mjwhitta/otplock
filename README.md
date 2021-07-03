@@ -30,7 +30,7 @@ $ make install
 
 ## Usage
 
-Simply run `otplock [--unsave]` in a terminal, and open the URL it
+Simply run `otplock [--unsafe]` in a terminal, and open the URL it
 prints out.
 
 ### Simple
