@@ -14,7 +14,7 @@ codes for their payloads.
 Open a terminal and run the following:
 
 ```
-$ go get -ldflags "-s -w" -u gitlab.com/mjwhitta/otplock/cmd/otplock
+$ go get --ldflags "-s -w" --trimpath -u gitlab.com/mjwhitta/otplock/cmd/otplock
 ```
 
 Or install from source:
