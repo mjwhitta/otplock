@@ -1,4 +1,10 @@
 -include gomk/main.mk
 
 superclean: clean
-	@rm -rf wwwotp
+ifeq ($(unameS),Windows)
+ifneq ($(wildcard wwwotp),)
+	@powershell -c Remove-Item -Force -Recurse ./wwwotp
+endif
+else
+	@rm -fr wwwotp
+endif
