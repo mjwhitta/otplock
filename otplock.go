@@ -55,7 +55,7 @@ func (otp *OTPLock) Run(allowUnsafe bool) error {
 	if otp.server != nil {
 		// Make sure to unlock before returning
 		otp.serverMutex.Unlock()
-		return hl.Errorf("OTPLock is already running")
+		return hl.Errorf("already running")
 	}
 
 	// Create HTTP server
