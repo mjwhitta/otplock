@@ -7,7 +7,7 @@ const advancedDashboard string = `
       <form method="post">
         <table style="width:100%">
           <col style="width:10%">
-	      <col style="width:90%">
+          <col style="width:90%">
 
           <tr>
             <td style="text-align:right; width=20">
@@ -60,7 +60,7 @@ const advancedNew string = `
       <form method="post">
         <table style="width:100%">
           <col style="width:10%">
-	      <col style="width:90%">
+          <col style="width:90%">
 
           <tr>
             <td style="text-align:right; width=20">
@@ -211,7 +211,7 @@ const simpleDashboard string = `
       <form method="post">
         <table style="width:100%">
           <col style="width:10%">
-	      <col style="width:90%">
+          <col style="width:90%">
 
           <tr>
             <td style="text-align:right; width=20">
@@ -295,4 +295,4 @@ const simpleResp string = `
 `
 
 // Version is the package version
-const Version = "1.0.15"
+const Version = "1.1.0"
