@@ -4,6 +4,8 @@ import (
 	"os/exec"
 	"runtime"
 	"strings"
+
+	"gitlab.com/mjwhitta/errors"
 )
 
 func execute(cmd string) (string, error) {
@@ -23,6 +25,7 @@ func executeShell(sh []string, cmd string) (string, error) {
 	sh = append(sh, cmd)
 
 	if o, e = exec.Command(sh[0], sh[1:]...).Output(); e != nil {
+		e = errors.Newf("command \"%s\" returned error: %w", cmd, e)
 		return "", e
 	}
 

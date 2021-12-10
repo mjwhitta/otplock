@@ -9,15 +9,6 @@ import (
 	"gitlab.com/mjwhitta/otplock"
 )
 
-// Exit status
-const (
-	Good            int = 0
-	InvalidOption   int = 1
-	InvalidArgument int = 2
-	ExtraArguments  int = 3
-	Exception       int = 4
-)
-
 func main() {
 	defer func() {
 		if r := recover(); r != nil {
@@ -28,16 +19,15 @@ func main() {
 		}
 	}()
 
-	var e error
 	var otp *otplock.OTPLock
 	var sig = make(chan os.Signal, 1)
 
 	validate()
 
-	if otp, e = otplock.New(flags.port); e != nil {
-		panic(e)
-	}
+	// Create OTPLock service
+	otp = otplock.New(flags.port)
 
+	// Catch ^C
 	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
 
 	// Start OTPLock

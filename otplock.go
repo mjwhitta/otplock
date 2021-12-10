@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	hl "gitlab.com/mjwhitta/hilighter"
+	"gitlab.com/mjwhitta/errors"
 	"gitlab.com/mjwhitta/log"
 	"gitlab.com/mjwhitta/safety"
 )
@@ -26,27 +26,25 @@ type OTPLock struct {
 }
 
 // New will return a pointer to a new OTPLock instance.
-func New(port int) (otp *OTPLock, e error) {
+func New(port int) *OTPLock {
 	// Ensure port is valid
 	if (port == 0) || (port > 65535) {
 		port = 8080
 	}
 
 	// Create OTPLock instance
-	otp = &OTPLock{
+	return &OTPLock{
 		Addr:        "0.0.0.0:" + strconv.Itoa(port),
 		Keys:        safety.NewMap(),
 		Root:        uuid.New().String(),
 		serverMutex: &sync.Mutex{},
 		stopped:     make(chan bool, 1),
 	}
-
-	return
 }
 
 // Run will listen for incoming connections and return the requested
 // OTP if still valid.
-func (otp *OTPLock) Run(allowUnsafe bool) error {
+func (otp *OTPLock) Run(allowUnsafe ...bool) error {
 	var e error
 
 	// Use a mutex to ensure this function only runs one at a time
@@ -55,17 +53,17 @@ func (otp *OTPLock) Run(allowUnsafe bool) error {
 	if otp.server != nil {
 		// Make sure to unlock before returning
 		otp.serverMutex.Unlock()
-		return hl.Errorf("otplock: already running")
+		return errors.New("already running")
 	}
 
 	// Create HTTP server
-	otp.server = &http.Server{Addr: otp.Addr}
-
-	// Store unsafe
-	otp.AllowUnsafe = allowUnsafe
+	otp.server = &http.Server{Addr: otp.Addr, ErrorLog: newLog(otp)}
 
 	// Unlock now that the server is created
 	otp.serverMutex.Unlock()
+
+	// Store unsafe
+	otp.AllowUnsafe = (len(allowUnsafe) > 0) && allowUnsafe[0]
 
 	otp.server.RegisterOnShutdown(
 		func() {
@@ -91,6 +89,8 @@ func (otp *OTPLock) Run(allowUnsafe bool) error {
 	case http.ErrServerClosed:
 		// Expected
 		e = nil
+	default:
+		e = errors.Newf("unexpected server error: %w", e)
 	}
 
 	return e
@@ -119,4 +119,9 @@ func (otp *OTPLock) Stop() {
 	}
 
 	otp.serverMutex.Unlock()
+}
+
+func (otp *OTPLock) Write(b []byte) (int, error) {
+	log.Err(string(b))
+	return len(b), nil
 }

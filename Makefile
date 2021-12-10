@@ -1,4 +1,5 @@
 -include gomk/main.mk
+-include local/Makefile
 
 superclean: clean
 ifeq ($(unameS),Windows)

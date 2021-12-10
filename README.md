@@ -18,17 +18,6 @@ $ go install --ldflags "-s -w" --trimpath \
     gitlab.com/mjwhitta/otplock/cmd/otplock@latest
 ```
 
-Or install from source:
-
-```
-$ git clone https://gitlab.com/mjwhitta/otplock.git
-$ cd otplock
-$ git submodule update --init
-$ make install
-```
-
-**Note:** `make install` will install to `$HOME/.local/bin`.
-
 ## Usage
 
 Simply run `otplock [--unsafe]` in a terminal, and open the URL it
