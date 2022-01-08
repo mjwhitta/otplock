@@ -8,7 +8,7 @@ gitlab.com/mjwhitta/hilighter v1.10.1 h1:TmE55gpilZjXrGQWYvT8RADD36kf4oBdlAPIJQD
 gitlab.com/mjwhitta/hilighter v1.10.1/go.mod h1:5ORJYI9wWBJeuJ9L6I3gLywvz8sOyIRt47DwTt5caF0=
 gitlab.com/mjwhitta/log v1.6.0 h1:g+Pr678Sh/404fnYNnIokKe9cQh/eC21ZdJ7sb+mRQM=
 gitlab.com/mjwhitta/log v1.6.0/go.mod h1:5Tq1QlR6rDc6qxRo5Fs6PlZH5NLhZfvdnMX8rfwosCY=
-gitlab.com/mjwhitta/pathname v1.0.9 h1:5nXh0FniuMxB1Bpc5hC2ZtRlff8HnDOvn8lfDVIa5Pg=
-gitlab.com/mjwhitta/pathname v1.0.9/go.mod h1:89jSeygMgYX/2gzfrZ6nC9yV8tjVbYrmMd6hk6FaHf8=
+gitlab.com/mjwhitta/pathname v1.1.0 h1:xk9yxMJp+8Ex0OupCRVonBT43QAkgiUdLfYiwgsL3Oo=
+gitlab.com/mjwhitta/pathname v1.1.0/go.mod h1:89jSeygMgYX/2gzfrZ6nC9yV8tjVbYrmMd6hk6FaHf8=
 gitlab.com/mjwhitta/safety v1.11.0 h1:Q3N8HoD5Wx60UT4I0n/ivFwM+737u9PILq3G0SWgkbI=
 gitlab.com/mjwhitta/safety v1.11.0/go.mod h1:wVWKeBfk2rr32ErLuSTu5+U5sgvfsmgSdw7WmrrQkqU=
