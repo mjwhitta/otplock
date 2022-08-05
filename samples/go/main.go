@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/hex"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"os"
 )
@@ -28,7 +28,7 @@ func main() {
 		os.Exit(2)
 	}
 
-	if key, e = ioutil.ReadAll(r.Body); e != nil {
+	if key, e = io.ReadAll(r.Body); e != nil {
 		fmt.Println(e.Error())
 		os.Exit(3)
 	}

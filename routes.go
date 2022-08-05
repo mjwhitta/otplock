@@ -4,7 +4,6 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -113,7 +112,7 @@ func (otp *OTPLock) advanced(
 		}
 
 		// Read the source template
-		bytes, e = ioutil.ReadFile(srcMeta.Filename + ".template")
+		bytes, e = os.ReadFile(srcMeta.Filename + ".template")
 		if e != nil {
 			return
 		}
@@ -142,8 +141,7 @@ func (otp *OTPLock) advanced(
 		execute(srcMeta.Compile)
 
 		// Read the compiled binary
-		bytes, e = ioutil.ReadFile(srcMeta.Binary)
-		if e != nil {
+		if bytes, e = os.ReadFile(srcMeta.Binary); e != nil {
 			return
 		}
 	}()
