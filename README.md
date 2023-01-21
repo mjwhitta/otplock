@@ -2,7 +2,7 @@
 
 <a href="https://www.buymeacoffee.com/mjwhitta">🍪 Buy me a cookie</a>
 
-[![Go Report Card](https://goreportcard.com/badge/gitlab.com/mjwhitta/otplock)](https://goreportcard.com/report/gitlab.com/mjwhitta/otplock)
+[![Go Report Card](https://goreportcard.com/badge/github.com/mjwhitta/otplock)](https://goreportcard.com/report/github.com/mjwhitta/otplock)
 
 ## What is this?
 
@@ -15,7 +15,7 @@ Open a terminal and run the following:
 
 ```
 $ go install --ldflags "-s -w" --trimpath \
-    gitlab.com/mjwhitta/otplock/cmd/otplock@latest
+    github.com/mjwhitta/otplock/cmd/otplock@latest
 ```
 
 ## Usage
@@ -52,7 +52,7 @@ payload.
 
 ## Links
 
-- [Source](https://gitlab.com/mjwhitta/otplock)
+- [Source](https://github.com/mjwhitta/otplock)
 
 ## TODO
 

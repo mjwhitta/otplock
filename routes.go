@@ -13,9 +13,9 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	hl "gitlab.com/mjwhitta/hilighter"
-	"gitlab.com/mjwhitta/log"
-	"gitlab.com/mjwhitta/pathname"
+	hl "github.com/mjwhitta/hilighter"
+	"github.com/mjwhitta/log"
+	"github.com/mjwhitta/pathname"
 )
 
 // advanced will process advanced level requests.

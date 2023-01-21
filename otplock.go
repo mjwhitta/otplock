@@ -8,9 +8,9 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"gitlab.com/mjwhitta/errors"
-	"gitlab.com/mjwhitta/log"
-	"gitlab.com/mjwhitta/safety"
+	"github.com/mjwhitta/errors"
+	"github.com/mjwhitta/log"
+	"github.com/mjwhitta/safety"
 )
 
 // OTPLock is a struct containing all metadata required to host an

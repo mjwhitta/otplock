@@ -5,8 +5,8 @@ import (
 	"os/signal"
 	"syscall"
 
-	"gitlab.com/mjwhitta/log"
-	"gitlab.com/mjwhitta/otplock"
+	"github.com/mjwhitta/log"
+	"github.com/mjwhitta/otplock"
 )
 
 func main() {

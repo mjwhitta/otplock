@@ -5,7 +5,7 @@ import (
 	"runtime"
 	"strings"
 
-	"gitlab.com/mjwhitta/errors"
+	"github.com/mjwhitta/errors"
 )
 
 func execute(cmd string) (string, error) {
