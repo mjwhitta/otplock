@@ -137,7 +137,7 @@ func (otp *OTPLock) advanced(
 
 		f.WriteString(src)
 
-		// Commpile source
+		// Compile source
 		execute(srcMeta.Compile)
 
 		// Read the compiled binary
