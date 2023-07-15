@@ -191,7 +191,7 @@ func (otp *OTPLock) config(w http.ResponseWriter, r *http.Request) {
 
 // dynamic will handle all incoming connections.
 func (otp *OTPLock) dynamic(w http.ResponseWriter, r *http.Request) {
-	var data interface{}
+	var data any
 	var guid string = pathname.Basename(r.URL.Path)
 	var meta metadata
 	var ok bool

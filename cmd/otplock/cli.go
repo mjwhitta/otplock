@@ -2,7 +2,6 @@ package main
 
 import (
 	"os"
-	"strings"
 
 	"github.com/mjwhitta/cli"
 	hl "github.com/mjwhitta/hilighter"
@@ -35,20 +34,17 @@ func init() {
 	cli.Authors = []string{"Miles Whittaker <mj@whitta.dev>"}
 	cli.Banner = hl.Sprintf("%s [OPTIONS]", os.Args[0])
 	cli.BugEmail = "otplock.bugs@whitta.dev"
-	cli.ExitStatus = strings.Join(
-		[]string{
-			"Normally the exit status is 0. In the event of an error",
-			"the exit status will be one of the below:\n\n",
-			hl.Sprintf("%d: Invalid option\n", InvalidOption),
-			hl.Sprintf("%d: Missing option\n", MissingOption),
-			hl.Sprintf("%d: Invalid argument\n", InvalidArgument),
-			hl.Sprintf("%d: Missing argument\n", MissingArgument),
-			hl.Sprintf("%d: Extra argument\n", ExtraArgument),
-			hl.Sprintf("%d: Exception", Exception),
-		},
-		" ",
+	cli.ExitStatus(
+		"Normally the exit status is 0. In the event of an error the",
+		"exit status will be one of the below:\n\n",
+		hl.Sprintf("%d: Invalid option\n", InvalidOption),
+		hl.Sprintf("%d: Missing option\n", MissingOption),
+		hl.Sprintf("%d: Invalid argument\n", InvalidArgument),
+		hl.Sprintf("%d: Missing argument\n", MissingArgument),
+		hl.Sprintf("%d: Extra argument\n", ExtraArgument),
+		hl.Sprintf("%d: Exception", Exception),
 	)
-	cli.Info = "Encode paylods with a one-time-pad (OTP)."
+	cli.Info("Encode paylods with a one-time-pad (OTP).")
 	cli.Title = "One-Time-Padlock"
 
 	// Parse cli flags
