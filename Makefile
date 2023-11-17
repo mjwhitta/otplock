@@ -9,7 +9,7 @@ endif
 superclean: clean
 ifeq ($(unameS),windows)
 ifneq ($(wildcard wwwotp),)
-	@powershell -c Remove-Item -Force -Recurse ./wwwotp
+	@remove-item -force -recurse ./wwwotp
 endif
 else
 	@rm -f -r wwwotp
