@@ -10,9 +10,9 @@ import (
 
 func main() {
 	var e error
-	var encHex = "ENCHEX"
+	var encHex string = "ENCHEX"
 	var key []byte
-	var otpURL = "OTPURL"
+	var otpURL string = "OTPURL"
 	var r *http.Response
 	var tmp []byte
 

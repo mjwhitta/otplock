@@ -9,7 +9,7 @@ import (
 )
 
 func execute(cmd string) (string, error) {
-	var sh = []string{"bash", "-c"}
+	var sh []string = []string{"bash", "-c"}
 
 	if runtime.GOOS == "windows" {
 		sh = []string{"cmd", "/C"}

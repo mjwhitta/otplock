@@ -33,7 +33,7 @@ func (otp *OTPLock) advanced(
 	var payload string
 	var t int
 	var tmp []byte
-	var wg = sync.WaitGroup{}
+	var wg sync.WaitGroup
 
 	if e = r.ParseForm(); e != nil {
 		hl.Fprintf(w, errPg, e.Error())
