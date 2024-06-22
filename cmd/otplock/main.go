@@ -32,7 +32,7 @@ func main() {
 
 	// Start OTPLock
 	go func() {
-		otp.Run(flags.unsafe)
+		_ = otp.Run(flags.unsafe)
 	}()
 
 	// Stop OTPLock on ^C

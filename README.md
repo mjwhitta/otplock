@@ -26,10 +26,11 @@ prints out.
 
 ### Simple
 
-To start, enter the endpoint, the length of time the OTP key should be
-valid, and the payload in hex. After hitting submit, you will be given
-the URL for the decryption key and the encrypted payload in hex. Copy
-and paste those to your source code and compile.
+To start, enter the endpoint (this is the domain that points to your
+OTPLock server), the length of time the OTP key should be valid, and
+the payload in hex (typically shellcode). After hitting submit, you
+will be given the URL for the decryption key and the encrypted payload
+in hex. Copy and paste those to your source code and compile.
 
 ### Advanced
 
@@ -41,6 +42,8 @@ VLAN).
 Change to the Advanced config level to get a little more
 functionality. The Advanced config will let you upload your source
 code and will attempt to compile it for you as you submit payloads.
+Your source code should use `OTPURL` to fetch the OTP key, and then
+decrypt `ENCHEX` with that key.
 
 To start, enter the endpoint, the source filename, the command to
 compile, and the name of the compiled binary to return to the user

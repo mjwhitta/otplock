@@ -111,7 +111,7 @@ func (otp *OTPLock) Stop() {
 		defer cancel()
 
 		// Shutdown the server
-		otp.server.Shutdown(ctx)
+		_ = otp.server.Shutdown(ctx)
 		otp.server = nil
 
 		// Wait for shutdown complete

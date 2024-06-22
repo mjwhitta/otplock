@@ -24,7 +24,7 @@ func (otp *OTPLock) advanced(
 	r *http.Request,
 	srcMeta metadata,
 ) {
-	var bytes []byte
+	var b []byte
 	var e error
 	var expires time.Duration
 	var guid string
@@ -90,8 +90,8 @@ func (otp *OTPLock) advanced(
 	)
 
 	// Encrypt payload with OTP key
-	for i, b := range key {
-		tmp[i] ^= b
+	for i := range key {
+		tmp[i] ^= key[i]
 	}
 
 	log.SubInfo("Compiling payload for user " + r.RemoteAddr)
@@ -112,14 +112,14 @@ func (otp *OTPLock) advanced(
 		}
 
 		// Read the source template
-		bytes, e = os.ReadFile(srcMeta.Filename + ".template")
+		b, e = os.ReadFile(srcMeta.Filename + ".template")
 		if e != nil {
 			return
 		}
 
 		// Replace dynamic variables
 		src = strings.ReplaceAll(
-			string(bytes),
+			string(b),
 			"ENCHEX",
 			hex.EncodeToString(tmp),
 		)
@@ -135,13 +135,17 @@ func (otp *OTPLock) advanced(
 		}
 		defer f.Close()
 
-		f.WriteString(src)
+		if _, e = f.WriteString(src); e != nil {
+			return
+		}
 
 		// Compile source
-		execute(srcMeta.Compile)
+		if _, e = execute(srcMeta.Compile); e != nil {
+			return
+		}
 
 		// Read the compiled binary
-		if bytes, e = os.ReadFile(srcMeta.Binary); e != nil {
+		if b, e = os.ReadFile(srcMeta.Binary); e != nil {
 			return
 		}
 	}()
@@ -152,7 +156,7 @@ func (otp *OTPLock) advanced(
 		return
 	}
 
-	w.Write(bytes)
+	_, _ = w.Write(b)
 }
 
 // config will handle incoming connections to the configuration
@@ -211,7 +215,7 @@ func (otp *OTPLock) dynamic(w http.ResponseWriter, r *http.Request) {
 			if time.Now().Before(meta.Expires) {
 				// Key not expired, return it
 				log.Goodf("User %s got key %s", r.RemoteAddr, guid)
-				w.Write(meta.Key)
+				_, _ = w.Write(meta.Key)
 			} else {
 				// Key expired
 				otp.Keys.Delete(guid)
@@ -294,7 +298,7 @@ func (otp *OTPLock) newAdv(w http.ResponseWriter, r *http.Request) {
 	otp.Keys.Put(guid, meta)
 
 	// Make directory
-	os.MkdirAll(filepath.Join("wwwotp", guid), os.ModePerm)
+	_ = os.MkdirAll(filepath.Join("wwwotp", guid), 0o755)
 
 	// Create file
 	f, e = os.Create(
@@ -307,7 +311,7 @@ func (otp *OTPLock) newAdv(w http.ResponseWriter, r *http.Request) {
 	defer f.Close()
 
 	// Write file
-	f.WriteString(source)
+	_, _ = f.WriteString(source)
 
 	// Redirect user to advanced page
 	hl.Fprintf(w, advancedResp, endpoint+"/"+guid, "/"+guid)
