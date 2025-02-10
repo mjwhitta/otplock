@@ -295,4 +295,4 @@ const simpleResp string = `
 `
 
 // Version is the package version
-const Version string = "1.2.12"
+const Version string = "1.2.13"
