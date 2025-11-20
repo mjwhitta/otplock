@@ -1,0 +1,74 @@
+<html>
+  <body>
+    <center>
+      <form method="get">
+        <label for="level">Config level</label>
+        <select id="level" name="level">
+          <option value="advanced">Advanced</option>
+          <option value="simple">Simple</option>
+        </select>
+        <input type="submit" value="Change"/>
+      </form>
+      <hr>
+      <br>
+      <form method="post">
+        <table style="width:100%">
+          <col style="width:10%">
+          <col style="width:90%">
+
+          <tr>
+            <td style="text-align:right; width=20">
+              <label for="endpoint">Endpoint:</label>
+            </td>
+            <td>
+              <input
+                id="endpoint"
+                name="endpoint"
+                style="width:100%"
+                type="text"
+              />
+            </td>
+          </tr>
+
+          <tr>
+            <td style="text-align:right; width=20">
+              <label for="expires">Time (secs):</label>
+            </td>
+            <td>
+              <input
+                id="expires"
+                name="expires"
+                style="width:100%"
+                type="text"
+              />
+            </td>
+          </tr>
+
+          <tr>
+            <td style="text-align:right; width=20">
+              <label for="payload">Payload (hex):</label>
+            </td>
+
+            <td>
+              <textarea
+                id="payload"
+                name="payload"
+                rows="32"
+                style="width:100%"
+              ></textarea>
+            </td>
+          </tr>
+        </table>
+
+        <input
+          hidden="true"
+          id="type"
+          name="type"
+          type="text"
+          value="simple"
+        />
+        <input type="submit" value="Submit"/>
+      </form>
+    </center>
+  </body>
+</html>

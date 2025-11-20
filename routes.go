@@ -3,6 +3,7 @@ package otplock
 import (
 	"crypto/rand"
 	"encoding/hex"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -13,7 +14,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	hl "github.com/mjwhitta/hilighter"
 	"github.com/mjwhitta/log"
 	"github.com/mjwhitta/pathname"
 )
@@ -36,40 +36,41 @@ func (otp *OTPLock) advanced(
 	var wg sync.WaitGroup
 
 	if e = r.ParseForm(); e != nil {
-		hl.Fprintf(w, errPg, e.Error())
+		_, _ = fmt.Fprintf(w, errPg, e.Error())
 		return
 	}
 
 	// Get values from form
 	t, e = strconv.Atoi(r.Form.Get("expires"))
 	if e != nil {
-		hl.Fprintf(w, errPg, e.Error())
+		_, _ = fmt.Fprintf(w, errPg, e.Error())
 		return
 	}
 
 	expires, e = time.ParseDuration(strconv.Itoa(t) + "s")
 	if e != nil {
-		hl.Fprintf(w, errPg, e.Error())
+		_, _ = fmt.Fprintf(w, errPg, e.Error())
 		return
 	}
 
 	payload = r.Form.Get("payload")
 	if payload == "" {
-		hl.Fprintf(w, errPg, "No payload provided")
+		_, _ = fmt.Fprintf(w, errPg, "No payload provided")
 		return
 	}
+
 	payload = strings.Join(strings.Fields(payload), "")
 
 	// Convert hex payload to byte array
 	if tmp, e = hex.DecodeString(payload); e != nil {
-		hl.Fprintf(w, errPg, e.Error())
+		_, _ = fmt.Fprintf(w, errPg, e.Error())
 		return
 	}
 
 	// Generate a random key of the same length as payload
 	key = make([]byte, len(tmp))
 	if _, e = io.ReadFull(rand.Reader, key); e != nil {
-		hl.Fprintf(w, errPg, e.Error())
+		_, _ = fmt.Fprintf(w, errPg, e.Error())
 		return
 	}
 
@@ -98,6 +99,7 @@ func (otp *OTPLock) advanced(
 
 	// Compile in background thread
 	wg.Add(1)
+
 	go func() {
 		var dir string
 		var f *os.File
@@ -133,7 +135,10 @@ func (otp *OTPLock) advanced(
 		if f, e = os.Create(srcMeta.Filename); e != nil {
 			return
 		}
-		defer f.Close()
+		defer func() {
+			_ = f.Close()
+			_ = os.Remove(srcMeta.Filename)
+		}()
 
 		if _, e = f.WriteString(src); e != nil {
 			return
@@ -149,10 +154,11 @@ func (otp *OTPLock) advanced(
 			return
 		}
 	}()
+
 	wg.Wait()
 
 	if e != nil {
-		hl.Fprintf(w, errPg, e.Error())
+		_, _ = fmt.Fprintf(w, errPg, e.Error())
 		return
 	}
 
@@ -165,7 +171,7 @@ func (otp *OTPLock) config(w http.ResponseWriter, r *http.Request) {
 	var e error
 
 	if e = r.ParseForm(); e != nil {
-		hl.Fprintf(w, errPg, e.Error())
+		_, _ = fmt.Fprintf(w, errPg, e.Error())
 		return
 	}
 
@@ -175,12 +181,16 @@ func (otp *OTPLock) config(w http.ResponseWriter, r *http.Request) {
 		switch r.Form.Get("level") {
 		case "advanced":
 			if otp.AllowUnsafe {
-				hl.Fprint(w, advancedNew)
+				_, _ = fmt.Fprint(w, advancedNew)
 			} else {
-				hl.Fprintf(w, errPg, "Advanced config disabled")
+				_, _ = fmt.Fprintf(
+					w,
+					errPg,
+					"Advanced config disabled",
+				)
 			}
 		default:
-			hl.Fprint(w, simpleDashboard)
+			_, _ = fmt.Fprint(w, simpleDashboard)
 		}
 	case http.MethodPost:
 		// If POST, process config
@@ -207,39 +217,49 @@ func (otp *OTPLock) dynamic(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Check if GUID exists
-	if data, ok = otp.Keys.Get(guid); ok {
-		meta = data.(metadata)
-
-		if len(meta.Key) != 0 {
-			// GUID exists so check if key expired
-			if time.Now().Before(meta.Expires) {
-				// Key not expired, return it
-				log.Goodf("User %s got key %s", r.RemoteAddr, guid)
-				_, _ = w.Write(meta.Key)
-			} else {
-				// Key expired
-				otp.Keys.Delete(guid)
-				log.Warnf(
-					"User %s attempted to get key %s",
-					r.RemoteAddr,
-					guid,
-				)
-				hl.Fprint(w, notFound)
-			}
-		} else {
-			// GUID exists but it wasn't a key
-			switch r.Method {
-			case http.MethodGet:
-				// Return advanced dashboard
-				hl.Fprint(w, advancedDashboard)
-			case http.MethodPost:
-				otp.advanced(w, r, meta)
-				return
-			}
-		}
-	} else {
+	if data, ok = otp.Keys.Get(guid); !ok {
 		// GUID not found
-		hl.Fprint(w, notFound)
+		_, _ = fmt.Fprint(w, notFound)
+
+		return
+	}
+
+	// If not valid metadata
+	if meta, ok = data.(metadata); !ok {
+		// Not sure how this could happen
+		return
+	}
+
+	if len(meta.Key) != 0 {
+		// GUID exists so check if key expired
+		switch {
+		case time.Now().Before(meta.Expires):
+			// Key not expired, return it
+			log.Goodf("User %s got key %s", r.RemoteAddr, guid)
+
+			_, _ = w.Write(meta.Key)
+		default:
+			// Key expired
+			otp.Keys.Delete(guid)
+			log.Warnf(
+				"User %s attempted to get key %s",
+				r.RemoteAddr,
+				guid,
+			)
+
+			_, _ = fmt.Fprint(w, notFound)
+		}
+
+		return
+	}
+
+	// GUID exists but it wasn't a key
+	switch r.Method {
+	case http.MethodGet:
+		// Return advanced dashboard
+		_, _ = fmt.Fprint(w, advancedDashboard)
+	case http.MethodPost:
+		otp.advanced(w, r, meta)
 	}
 }
 
@@ -258,31 +278,31 @@ func (otp *OTPLock) newAdv(w http.ResponseWriter, r *http.Request) {
 	// Get values from form
 	binary = r.Form.Get("binary")
 	if binary == "" {
-		hl.Fprintf(w, errPg, "No binary name provided")
+		_, _ = fmt.Fprintf(w, errPg, "No binary name provided")
 		return
 	}
 
 	endpoint = r.Form.Get("endpoint")
 	if endpoint == "" {
-		hl.Fprintf(w, errPg, "No endpoint provided")
+		_, _ = fmt.Fprintf(w, errPg, "No endpoint provided")
 		return
 	}
 
 	filename = pathname.Basename(r.Form.Get("filename"))
 	if filename == "" {
-		hl.Fprintf(w, errPg, "No filename provided")
+		_, _ = fmt.Fprintf(w, errPg, "No filename provided")
 		return
 	}
 
 	compile = r.Form.Get("compile")
 	if compile == "" {
-		hl.Fprintf(w, errPg, "No compile command provided")
+		_, _ = fmt.Fprintf(w, errPg, "No compile command provided")
 		return
 	}
 
 	source = r.Form.Get("source")
 	if source == "" {
-		hl.Fprintf(w, errPg, "No template source provided")
+		_, _ = fmt.Fprintf(w, errPg, "No template source provided")
 		return
 	}
 
@@ -298,23 +318,26 @@ func (otp *OTPLock) newAdv(w http.ResponseWriter, r *http.Request) {
 	otp.Keys.Put(guid, meta)
 
 	// Make directory
-	_ = os.MkdirAll(filepath.Join("wwwotp", guid), 0o755)
+	//nolint:mnd // u=rwx,go=-
+	_ = os.MkdirAll(filepath.Join("wwwotp", guid), 0o700)
 
 	// Create file
 	f, e = os.Create(
 		filepath.Join("wwwotp", guid, filename) + ".template",
 	)
 	if e != nil {
-		hl.Fprintf(w, errPg, e.Error())
+		_, _ = fmt.Fprintf(w, errPg, e.Error())
 		return
 	}
-	defer f.Close()
+	defer func() {
+		_ = f.Close()
+	}()
 
 	// Write file
 	_, _ = f.WriteString(source)
 
 	// Redirect user to advanced page
-	hl.Fprintf(w, advancedResp, endpoint+"/"+guid, "/"+guid)
+	_, _ = fmt.Fprintf(w, advancedResp, endpoint+"/"+guid, "/"+guid)
 }
 
 // simple will process simple level requests.
@@ -332,39 +355,40 @@ func (otp *OTPLock) simple(w http.ResponseWriter, r *http.Request) {
 	// Get values from form
 	endpoint = r.Form.Get("endpoint")
 	if endpoint == "" {
-		hl.Fprintf(w, errPg, "No endpoint provided")
+		_, _ = fmt.Fprintf(w, errPg, "No endpoint provided")
 		return
 	}
 
 	t, e = strconv.Atoi(r.Form.Get("expires"))
 	if e != nil {
-		hl.Fprintf(w, errPg, e.Error())
+		_, _ = fmt.Fprintf(w, errPg, e.Error())
 		return
 	}
 
 	expires, e = time.ParseDuration(strconv.Itoa(t) + "s")
 	if e != nil {
-		hl.Fprintf(w, errPg, e.Error())
+		_, _ = fmt.Fprintf(w, errPg, e.Error())
 		return
 	}
 
 	payload = r.Form.Get("payload")
 	if payload == "" {
-		hl.Fprintf(w, errPg, "No payload provided")
+		_, _ = fmt.Fprintf(w, errPg, "No payload provided")
 		return
 	}
+
 	payload = strings.Join(strings.Fields(payload), "")
 
 	// Convert hex payload to byte array
 	if tmp, e = hex.DecodeString(payload); e != nil {
-		hl.Fprintf(w, errPg, e.Error())
+		_, _ = fmt.Fprintf(w, errPg, e.Error())
 		return
 	}
 
 	// Generate a random key of the same length as payload
 	key = make([]byte, len(tmp))
 	if _, e = io.ReadFull(rand.Reader, key); e != nil {
-		hl.Fprintf(w, errPg, e.Error())
+		_, _ = fmt.Fprintf(w, errPg, e.Error())
 		return
 	}
 
@@ -389,7 +413,7 @@ func (otp *OTPLock) simple(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Return URL and encrypted payload to user
-	hl.Fprintf(
+	_, _ = fmt.Fprintf(
 		w,
 		simpleResp,
 		endpoint+"/"+guid,

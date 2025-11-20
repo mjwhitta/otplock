@@ -21,7 +21,9 @@ $ go install github.com/mjwhitta/otplock/cmd/otplock@latest
 ## Usage
 
 Simply run `otplock [--unsafe]` in a terminal, and open the URL it
-prints out.
+prints out. After following the below instructions, see the [Go
+sample](./samples/go/main.go) to get an idea of how to use the OTP URL
+and encrypted payload.
 
 ### Simple
 
@@ -35,8 +37,8 @@ in hex. Copy and paste those to your source code and compile.
 
 **Warning:** This usage can be unsafe. This will allow anyone with the
 link to run arbitrary commands on your box. It is suggested to only
-run this on a fresh VM with minimal network connections (separate
-VLAN).
+run this in a Docker container or on a fresh VM with minimal network
+connections (separate VLAN).
 
 Change to the Advanced config level to get a little more
 functionality. The Advanced config will let you upload your source
@@ -60,3 +62,4 @@ payload.
 ## TODO
 
 - Better README
+- Log fmt errors server-side

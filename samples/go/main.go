@@ -5,44 +5,48 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
 )
 
 func main() {
+	var decHex []byte
 	var e error
 	var encHex string = "ENCHEX"
 	var key []byte
 	var otpURL string = "OTPURL"
 	var r *http.Response
-	var tmp []byte
 
 	// Convert payload to byte array for decryption
-	if tmp, e = hex.DecodeString(encHex); e != nil {
+	if decHex, e = hex.DecodeString(encHex); e != nil {
 		fmt.Println(e.Error())
-		os.Exit(1)
+		return
 	}
 
 	// Fetch decryption key
 	if r, e = http.Get(otpURL); e != nil {
 		fmt.Println(e.Error())
-		os.Exit(2)
+		return
 	}
+	defer func() {
+		if e := r.Body.Close(); e != nil {
+			panic(e)
+		}
+	}()
 
 	if key, e = io.ReadAll(r.Body); e != nil {
 		fmt.Println(e.Error())
-		os.Exit(3)
+		return
 	}
 
 	// Exit if key length doesn't match
-	if len(key) != len(tmp) {
+	if len(key) != len(decHex) {
 		return
 	}
 
 	// Decrypt
 	for i, b := range key {
-		tmp[i] ^= b
+		decHex[i] ^= b
 	}
 
-	// Do stuff with decrypted payload
-	fmt.Println(string(tmp))
+	// Do stuff with decrypted payload (probably not print it)
+	fmt.Println(string(decHex))
 }

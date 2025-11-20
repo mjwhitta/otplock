@@ -2,8 +2,8 @@ package otplock
 
 import (
 	"context"
+	"fmt"
 	"net/http"
-	"strconv"
 	"sync"
 	"time"
 
@@ -20,21 +20,22 @@ type OTPLock struct {
 	AllowUnsafe bool
 	Keys        *safety.Map
 	Root        string
+
 	server      *http.Server
 	serverMutex *sync.Mutex
 	stopped     chan bool
 }
 
 // New will return a pointer to a new OTPLock instance.
-func New(port int) *OTPLock {
+func New(port uint16) *OTPLock {
 	// Ensure port is valid
-	if (port == 0) || (port > 65535) {
+	if port == 0 {
 		port = 8080
 	}
 
 	// Create OTPLock instance
 	return &OTPLock{
-		Addr:        "0.0.0.0:" + strconv.Itoa(port),
+		Addr:        fmt.Sprintf("0.0.0.0:%d", port),
 		Keys:        safety.NewMap(),
 		Root:        uuid.New().String(),
 		serverMutex: &sync.Mutex{},
@@ -57,7 +58,11 @@ func (otp *OTPLock) Run(allowUnsafe ...bool) error {
 	}
 
 	// Create HTTP server
-	otp.server = &http.Server{Addr: otp.Addr, ErrorLog: newLog(otp)}
+	otp.server = &http.Server{
+		Addr:              otp.Addr,
+		ErrorLog:          newLog(otp),
+		ReadHeaderTimeout: 10 * time.Second, //nolint:mnd // 10 secs
+	}
 
 	// Unlock now that the server is created
 	otp.serverMutex.Unlock()
@@ -71,6 +76,7 @@ func (otp *OTPLock) Run(allowUnsafe ...bool) error {
 
 			// Signal that shutdown is complete
 			otp.stopped <- true
+
 			close(otp.stopped)
 		},
 	)
@@ -106,7 +112,7 @@ func (otp *OTPLock) Stop() {
 	if otp.server != nil {
 		ctx, cancel = context.WithTimeout(
 			context.Background(),
-			4*time.Second,
+			4*time.Second, //nolint:mnd // 4 secs
 		)
 		defer cancel()
 
@@ -121,6 +127,7 @@ func (otp *OTPLock) Stop() {
 	otp.serverMutex.Unlock()
 }
 
+// Write is used by the http.Server to log errors.
 func (otp *OTPLock) Write(b []byte) (int, error) {
 	log.Err(string(b))
 	return len(b), nil

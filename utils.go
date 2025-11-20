@@ -24,6 +24,7 @@ func executeShell(sh []string, cmd string) (string, error) {
 
 	sh = append(sh, cmd)
 
+	//nolint:gosec // G204 - that's the whole point of this function
 	if o, e = exec.Command(sh[0], sh[1:]...).Output(); e != nil {
 		e = errors.Newf("command \"%s\" returned error:\n%w", cmd, e)
 		return "", e

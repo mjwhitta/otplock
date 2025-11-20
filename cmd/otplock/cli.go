@@ -1,7 +1,10 @@
 package main
 
 import (
+	"fmt"
+	"math"
 	"os"
+	"path/filepath"
 
 	"github.com/mjwhitta/cli"
 	hl "github.com/mjwhitta/hilighter"
@@ -21,30 +24,33 @@ const (
 
 // Flags
 var flags struct {
-	nocolor bool
-	port    int
-	unsafe  bool
-	verbose bool
-	version bool
+	nocolor  bool
+	port     uint16
+	portFlag uint
+	unsafe   bool
+	verbose  bool
+	version  bool
 }
 
 func init() {
 	// Configure cli package
 	cli.Align = true
 	cli.Authors = []string{"Miles Whittaker <mj@whitta.dev>"}
-	cli.Banner = hl.Sprintf("%s [OPTIONS]", os.Args[0])
+	cli.Banner = filepath.Base(os.Args[0]) + " [OPTIONS]"
 	cli.BugEmail = "otplock.bugs@whitta.dev"
+
 	cli.ExitStatus(
 		"Normally the exit status is 0. In the event of an error the",
 		"exit status will be one of the below:\n\n",
-		hl.Sprintf("%d: Invalid option\n", InvalidOption),
-		hl.Sprintf("%d: Missing option\n", MissingOption),
-		hl.Sprintf("%d: Invalid argument\n", InvalidArgument),
-		hl.Sprintf("%d: Missing argument\n", MissingArgument),
-		hl.Sprintf("%d: Extra argument\n", ExtraArgument),
-		hl.Sprintf("%d: Exception", Exception),
+		fmt.Sprintf("%d: Invalid option\n", InvalidOption),
+		fmt.Sprintf("%d: Missing option\n", MissingOption),
+		fmt.Sprintf("%d: Invalid argument\n", InvalidArgument),
+		fmt.Sprintf("%d: Missing argument\n", MissingArgument),
+		fmt.Sprintf("%d: Extra argument\n", ExtraArgument),
+		fmt.Sprintf("%d: Exception", Exception),
 	)
 	cli.Info("Encode paylods with a one-time-pad (OTP).")
+
 	cli.Title = "One-Time-Padlock"
 
 	// Parse cli flags
@@ -55,10 +61,10 @@ func init() {
 		"Disable colorized output.",
 	)
 	cli.Flag(
-		&flags.port,
+		&flags.portFlag,
 		"p",
 		"port",
-		8080,
+		8080, //nolint:mnd // default non-privileged HTTP port
 		"The port to listen on (default: 8080).",
 	)
 	cli.Flag(
@@ -83,9 +89,18 @@ func init() {
 func validate() {
 	hl.Disable(flags.nocolor)
 
+	// Ensure port is valid
+	if flags.portFlag > math.MaxUint16 {
+		flags.portFlag = math.MaxUint16
+	}
+
+	flags.port = uint16(flags.portFlag)
+
 	// Short circuit if version was requested
 	if flags.version {
-		hl.Printf("otplock version %s\n", otplock.Version)
+		fmt.Println(
+			filepath.Base(os.Args[0]) + " version " + otplock.Version,
+		)
 		os.Exit(Good)
 	}
 
