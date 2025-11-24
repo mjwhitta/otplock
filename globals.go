@@ -3,7 +3,7 @@ package otplock
 import _ "embed"
 
 // Version is the package version
-const Version string = "1.2.15"
+const Version string = "1.2.16"
 
 var (
 	//go:embed tmpls/advanced_dashboard.html
