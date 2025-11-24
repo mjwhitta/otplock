@@ -49,7 +49,7 @@ func init() {
 		fmt.Sprintf("%d: Extra argument\n", ExtraArgument),
 		fmt.Sprintf("%d: Exception", Exception),
 	)
-	cli.Info("Encode paylods with a one-time-pad (OTP).")
+	cli.Info("Encode payloads with a one-time-pad (OTP).")
 
 	cli.Title = "One-Time-Padlock"
 
