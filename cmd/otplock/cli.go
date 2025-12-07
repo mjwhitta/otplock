@@ -64,7 +64,7 @@ func init() {
 		&flags.portFlag,
 		"p",
 		"port",
-		8080, //nolint:mnd // default non-privileged HTTP port
+		8080, //nolint:mnd // Default non-privileged HTTP port
 		"The port to listen on (default: 8080).",
 	)
 	cli.Flag(
