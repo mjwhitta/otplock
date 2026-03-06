@@ -1,3 +1,4 @@
+//nolint:gosec // G705 - Why would errors contains XSS
 package otplock
 
 import (

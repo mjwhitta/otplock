@@ -94,6 +94,7 @@ func validate() {
 		flags.portFlag = math.MaxUint16
 	}
 
+	//nolint:gosec // G115 - not a problem b/c of above if statement
 	flags.port = uint16(flags.portFlag)
 
 	// Short circuit if version was requested
